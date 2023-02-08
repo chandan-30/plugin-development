@@ -25,8 +25,8 @@
 
     //default attribute values
     $attr = shortcode_atts( array(      
-        'title' => __('Default title', 'my-text-domain'),
-        'color' => __('red', 'my-text-domain'), 
+        'title' => __('Default title', 'My-Simple-Plugin'),
+        'color' => __('red', 'My-Simple-Plugin'), 
     ), $attr);
     //using ouput buffer
     ob_start();     
