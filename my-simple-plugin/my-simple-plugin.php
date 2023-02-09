@@ -10,72 +10,39 @@
  * 
  */
 
+ define('MSP_CONSTANT', true); //Constant with a boolean value
  require_once dirname(__FILE__).'/include/admin_settings.php';
+ require_once dirname(__FILE__).'/include/shortcode.php';
+ require_once dirname(__FILE__).'/include/insert-ad-post.php';
  
  /**
-  * Handles a shortcode on posts
+  * Inserts a post upon plugin activation
   *
   * @since 0.0.1
   *
-  * @return HTML snippet which includes shortcode default attributes if user haven't provided any attributes.
+  * @param none
+  *
+  * @return void
   */
- function handle_shortcode( $attr, $content='' ){
-    //global post variable
-    global $post;       
-
-    //default attribute values
-    $attr = shortcode_atts( array(      
-        'title' => __('Default title', 'my-simple-plugin'),
-        'color' => 'red', 
-    ), $attr);
-    //using ouput buffer
-    ob_start();     
-    ?>
-
-    <div style="color:<?php echo $attr['color']?>">
-    <?php echo $content.' '.$attr['title']?>
-    <?php echo $post->ID;?>
-    </div>
-    <?php
-    //output buffer ends
-    return ob_get_clean(); 
-}
-// Hooking function to test shortcode hook
-add_shortcode("test-shortcode",'handle_shortcode');
-
- /**
-  * Modifies the original content
-  *
-  * @since 0.0.1
-  *
-  * @return shortcode content with modifications
-  */
-function add_content_bottom($content){
-    
-    //modifying the original content
-    return $content." My content at bottom"; 
-}
-//the_content hook to add custom content
-add_filter('the_content', 'add_content_bottom'); 
-
-
-/**
-  * Add a new post 'Advertisement' to list of posts'
-  *
-  * @since 0.0.1
-  *
-  * @return array list with new post addition
-  */
-function inject_ad( $posts) {
-    if ( is_home() && is_main_query() ){
-        $page = get_page_by_title('Advertisement', OBJECT, 'post');
-        array_splice($posts, 1,0,array($page));
+ function msp_insert_post_on_activation_() {
+    //check if option exists
+    if( get_option('msp_inserted_post') ){
+        return;
     }
-    
-    return $posts;
+    //function to insert post 
+    $post_id = wp_insert_post(array(
+        'post_title' => 'WP-inserted-post',
+        'post_status' => 'publish',
+        'post_content' => 'This is inserted upon activation',
+    ));
+    //add or update option with post id of new post
+    update_option('msp_inserted_post', $post_id);
 }
-//filter hook
-add_filter('the_posts', 'inject_ad'); 
+//runs callback on activation
+register_activation_hook(__FILE__, 'msp_insert_post_on_activation_');   
+?>
+
+
  
 ?>
 
