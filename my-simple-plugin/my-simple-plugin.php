@@ -14,9 +14,10 @@
 
  require_once dirname(__FILE__).'/include/wp_requirements.php';
  $plugin_checks = new MSP_Requirements('My Simple Plugin', __FILE__, array(
-    'PHP' => '8.0.0',
-    'WordPress' => '5.0.0',
+    'PHP' => '8.0.0', //minimum php version required
+    'WordPress' => '5.0.0', //minimum wordpress version required
  ));
+ //condition to check if checks are passed or not
  if ( false === $plugin_checks->pass() ) {
     $plugin_checks->halt();
     return;
