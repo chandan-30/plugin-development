@@ -31,9 +31,9 @@
     }
     //function to insert post 
     $post_id = wp_insert_post(array(
-        'post_title' => 'WP-inserted-post',
-        'post_status' => 'publish',
-        'post_content' => 'This is inserted upon activation',
+        'post_title' => __('WP-inserted-post', 'my-simple-plugin'),
+        'post_status' => __('publish', 'my-simple-plugin'),
+        'post_content' => __('This is inserted upon activation', 'my-simple-plugin'),
     ));
     //add or update option with post id of new post
     update_option('msp_inserted_post', $post_id);
