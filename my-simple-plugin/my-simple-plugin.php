@@ -10,72 +10,94 @@
  * 
  */
 
+ define('MSP_CONSTANT', true); //Constant with a boolean value
  require_once dirname(__FILE__).'/include/admin_settings.php';
+ require_once dirname(__FILE__).'/include/shortcode.php';
+ require_once dirname(__FILE__).'/include/insert-ad-post.php';
+ require_once dirname(__FILE__).'/include/callbacks.php';
  
  /**
-  * Handles a shortcode on posts
+  * creates a table name
   *
   * @since 0.0.1
   *
-  * @return HTML snippet which includes shortcode default attributes if user haven't provided any attributes.
-  */
- function handle_shortcode( $attr, $content='' ){
-    //global post variable
-    global $post;       
-
-    //default attribute values
-    $attr = shortcode_atts( array(      
-        'title' => __('Default title', 'my-simple-plugin'),
-        'color' => 'red', 
-    ), $attr);
-    //using ouput buffer
-    ob_start();     
-    ?>
-
-    <div style="color:<?php echo $attr['color']?>">
-    <?php echo $content.' '.$attr['title']?>
-    <?php echo $post->ID;?>
-    </div>
-    <?php
-    //output buffer ends
-    return ob_get_clean(); 
-}
-// Hooking function to test shortcode hook
-add_shortcode("test-shortcode",'handle_shortcode');
-
- /**
-  * Modifies the original content
+  * @param none
   *
-  * @since 0.0.1
-  *
-  * @return shortcode content with modifications
+  * @return String
   */
-function add_content_bottom($content){
-    
-    //modifying the original content
-    return $content." My content at bottom"; 
-}
-//the_content hook to add custom content
-add_filter('the_content', 'add_content_bottom'); 
-
-
+ function msp_get_table_name() {
+    global $wpdb;
+    return $wpdb->base_prefix . 'msp_custom_table';
+ }
 /**
-  * Add a new post 'Advertisement' to list of posts'
+  * Fetaches a row
   *
   * @since 0.0.1
   *
-  * @return array list with new post addition
+  * @param Int $post_id fetch row with this value
+  *
+  * @return Object
   */
-function inject_ad( $posts) {
-    if ( is_home() && is_main_query() ){
-        $page = get_page_by_title('Advertisement', OBJECT, 'post');
-        array_splice($posts, 1,0,array($page));
-    }
+ function msp_fetch_rows($post_id) {
+    global $wpdb;
+    $table_name = msp_get_table_name();
+   return $wpdb->get_row("SELECT * from $table_name WHERE post_id = ". intval( $post_id ) );
+ }
+/**
+  * creates a DB table if doesn't exist or fetches a row
+  *
+  * @since 0.0.1
+  *
+  * @param none
+  *
+  * @return void
+  */
+ function create_custom_db_table() {
+    global $wpdb;
+    //gets the table name to be created
+    $table_name = msp_get_table_name();
+    $query = $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $table_name ) );
+    //check if table exists
+    if ( ! $wpdb->get_var( $query ) == $table_name ) {
+        $charset = $wpdb->get_charset_collate();
+        //SQL Query for table creation
+        $sql = "CREATE TABLE $table_name (
+            id int(11) NOT NULL AUTO_INCREMENT,
+            post_id int(11) NOT NULL,
+            post_title TEXT NOT NULL,
+            PRIMARY KEY (id)
+            ) $charset;";
     
-    return $posts;
+        require_once( ABSPATH . 'wp-admin/includes/upgrade.php');
+        dbDelta( $sql );
+    } else {
+        //fetches a row
+        $res = msp_fetch_rows(163);
+    }
+ }
+
+ /**
+  * calls a function to create a DB table
+  *
+  * @since 0.0.1
+  *
+  * @param none
+  *
+  * @return void
+  */
+ function msp_insert_post_on_activation() {
+        create_custom_db_table();
 }
-//filter hook
-add_filter('the_posts', 'inject_ad'); 
- 
+
+//runs callback on activation
+register_activation_hook(__FILE__, 'msp_insert_post_on_activation');
+  
+
+
 ?>
+
+
+ 
+
+
 
